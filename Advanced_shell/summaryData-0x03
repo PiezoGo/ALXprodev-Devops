@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# Set output CSV file
+output_file="pokemon_report.csv"
+
+# Print header to CSV
+echo "Name,Height (m),Weight (kg)" > "$output_file"
+
+# Temporary file for AWK to read from
+temp_data="temp_stats.txt"
+> "$temp_data"  # clear it if it exists
+
+# Read each JSON file
+for file in pokemon_data/*.json; do
+    # Extract data using jq
+    name=$(jq -r '.name' "$file" | sed 's/.*/\u&/')  # Capitalize
+    height=$(jq -r '.height' "$file" | awk '{printf "%.2f", $1/10}')  # dm to m
+    weight=$(jq -r '.weight' "$file" | awk '{printf "%.2f", $1/10}')  # hg to kg
+
+    # Write to CSV
+    echo "$name,$height,$weight" >> "$output_file"
+
+    # Write to temp file for averages
+    echo "$height $weight" >> "$temp_data"
+done
+
+# Use AWK to calculate average height and weight
+awk '
+{
+    total_height += $1
+    total_weight += $2
+    count += 1
+}
+END {
+    avg_height = total_height / count
+    avg_weight = total_weight / count
+    printf "\nAverage Height: %.2f m\nAverage Weight: %.2f kg\n", avg_height, avg_weight
+}
+' "$temp_data"
+
+# Cleanup
+rm -f "$temp_data"
+
+# Final message
+echo "CSV Report generated at: $output_file"
