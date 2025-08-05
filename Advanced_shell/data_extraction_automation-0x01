@@ -1,11 +1,10 @@
-#!/usr/bin/bash
+#!/bin/bash
 
+# Extract name, height, weight, and type
+name=$(jq -r '.name' data.json | sed 's/.*/\u&/')  # Capitalize first letter
+type=$(jq -r '.types[0].type.name' data.json | sed 's/.*/\u&/')  # Capitalize
+height=$(jq -r '.height' data.json | awk '{printf "%.1f", $1/10}')  # dm to m
+weight=$(jq -r '.weight' data.json | awk '{printf "%.0f", $1/10}')  # hg to kg
 
-# Extract values using jq
-name=$(jq -r '.name' data.json | sed 's/.*/\u&/')  # Capitalize
-height=$(jq -r '.height' data.json | awk '{printf "%.1f", $1/10}') # Convert to meters
-weight=$(jq -r '.weight' data.json | awk '{printf "%.0f", $1/10}') # Convert to kg
-type=$(jq -r '.types[0].type.name' data.json | sed 's/.*/\u&/')    # Capitalize
-
-# Output formatted sentence
+# Human-readable output (MUST MATCH the required format)
 echo "$name is of type $type, weighs ${weight}kg, and is ${height}m tall."
